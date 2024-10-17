@@ -5,24 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>カメラアプリ</title>
     <style>
-        video {
+        video, canvas {
             width: 100%;
             height: auto;
         }
-        #switchButton {
-            margin-top: 10px;
+        #downloadLink {
+            display: none;
         }
     </style>
 </head>
 <body>
     <h1>カメラアプリ</h1>
     <video id="video" autoplay></video>
-    <button id="switchButton">カメラ切り替え</button>
+    <canvas id="canvas"></canvas>
+    <a id="downloadLink" download="captured_image.png">画像をダウンロード</a>
 
     <script>
         let videoElement = document.getElementById('video');
+        let canvasElement = document.getElementById('canvas');
+        let downloadLink = document.getElementById('downloadLink');
         let currentStream = null;
         let useBackCamera = true;
+        let tapTimeout = null;
 
         async function startCamera() {
             if (currentStream) {
@@ -43,10 +47,41 @@
             }
         }
 
-        document.getElementById('switchButton').addEventListener('click', () => {
-            // 背面カメラと前面カメラの切り替え
+        // シングルタップで画像キャプチャ
+        function captureImage() {
+            const context = canvasElement.getContext('2d');
+            canvasElement.width = videoElement.videoWidth;
+            canvasElement.height = videoElement.videoHeight;
+            context.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
+            
+            // Canvasの内容を画像として取得
+            const dataURL = canvasElement.toDataURL('image/png');
+
+            // ダウンロードリンクを生成しクリック
+            downloadLink.href = dataURL;
+            downloadLink.click();
+        }
+
+        // ダブルタップでカメラ切り替え
+        function switchCamera() {
             useBackCamera = !useBackCamera;
             startCamera();
+        }
+
+        // タップイベントの処理
+        videoElement.addEventListener('click', () => {
+            if (tapTimeout !== null) {
+                // ダブルタップ時
+                clearTimeout(tapTimeout);
+                tapTimeout = null;
+                switchCamera();
+            } else {
+                // シングルタップ時
+                tapTimeout = setTimeout(() => {
+                    captureImage();
+                    tapTimeout = null;
+                }, 300); // 300ms以内の2回のタップをダブルタップと認識
+            }
         });
 
         // 初期起動時に背面カメラを使用
