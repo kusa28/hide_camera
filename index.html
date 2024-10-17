@@ -27,6 +27,7 @@
         let currentStream = null;
         let useBackCamera = true;
         let tapTimeout = null;
+        let lastTap = 0; // 最後のタップのタイムスタンプ
 
         async function startCamera() {
             if (currentStream) {
@@ -69,18 +70,20 @@
         }
 
         // タップイベントの処理
-        videoElement.addEventListener('click', () => {
-            if (tapTimeout !== null) {
-                // ダブルタップ時
-                clearTimeout(tapTimeout);
-                tapTimeout = null;
+        videoElement.addEventListener('click', (event) => {
+            const currentTime = new Date().getTime();
+            const tapInterval = currentTime - lastTap;
+
+            if (tapInterval < 300 && tapInterval > 0) {
+                // ダブルタップの場合
                 switchCamera();
+                lastTap = 0; // リセット
             } else {
-                // シングルタップ時
+                // シングルタップの場合
+                lastTap = currentTime;
                 tapTimeout = setTimeout(() => {
                     captureImage();
-                    tapTimeout = null;
-                }, 300); // 300ms以内の2回のタップをダブルタップと認識
+                }, 300); // 300ms以内に再度タップがない場合はシングルタップと判断
             }
         });
 
