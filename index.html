@@ -7,46 +7,50 @@
     <style>
         video {
             width: 100%;
-            max-width: 600px;
-            border: 1px solid black;
+            height: auto;
         }
-        canvas {
-            display: none;
+        #switchButton {
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
     <h1>カメラアプリ</h1>
     <video id="video" autoplay></video>
-    <button id="snap">スナップショットを撮る</button>
-    <canvas id="canvas"></canvas>
-    <img id="photo" alt="スナップショット">
+    <button id="switchButton">カメラ切り替え</button>
 
     <script>
-        // HTML要素の取得
-        const video = document.getElementById('video');
-        const canvas = document.getElementById('canvas');
-        const context = canvas.getContext('2d');
-        const photo = document.getElementById('photo');
-        const snapButton = document.getElementById('snap');
+        let videoElement = document.getElementById('video');
+        let currentStream = null;
+        let useBackCamera = true;
 
-        // カメラストリームの取得
-        navigator.mediaDevices.getUserMedia({ video: true })
-            .then((stream) => {
-                video.srcObject = stream;
-            })
-            .catch((error) => {
-                console.error("カメラの取得に失敗しました:", error);
-            });
+        async function startCamera() {
+            if (currentStream) {
+                // 既存のストリームを停止
+                currentStream.getTracks().forEach(track => track.stop());
+            }
 
-        // スナップショットを撮る
-        snapButton.addEventListener('click', () => {
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            context.drawImage(video, 0, 0);
-            const dataURL = canvas.toDataURL('image/png');
-            photo.src = dataURL;
+            try {
+                // カメラを選択（背面または前面）
+                currentStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: useBackCamera ? 'environment' : 'user' }
+                });
+                
+                // ビデオ要素にストリームを設定
+                videoElement.srcObject = currentStream;
+            } catch (error) {
+                console.error('カメラの起動に失敗しました: ', error);
+            }
+        }
+
+        document.getElementById('switchButton').addEventListener('click', () => {
+            // 背面カメラと前面カメラの切り替え
+            useBackCamera = !useBackCamera;
+            startCamera();
         });
+
+        // 初期起動時に背面カメラを使用
+        startCamera();
     </script>
 </body>
 </html>
