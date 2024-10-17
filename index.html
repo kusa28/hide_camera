@@ -28,6 +28,7 @@
         let useBackCamera = true;
         let tapTimeout = null;
         let lastTap = 0; // 最後のタップのタイムスタンプ
+        let isDoubleTap = false; // ダブルタップが発生したかどうか
 
         async function startCamera() {
             if (currentStream) {
@@ -50,6 +51,8 @@
 
         // シングルタップで画像キャプチャ
         function captureImage() {
+            if (isDoubleTap) return; // ダブルタップの場合はキャプチャしない
+
             const context = canvasElement.getContext('2d');
             canvasElement.width = videoElement.videoWidth;
             canvasElement.height = videoElement.videoHeight;
@@ -76,11 +79,14 @@
 
             if (tapInterval < 300 && tapInterval > 0) {
                 // ダブルタップの場合
+                isDoubleTap = true;
                 switchCamera();
                 lastTap = 0; // リセット
             } else {
                 // シングルタップの場合
                 lastTap = currentTime;
+                isDoubleTap = false; // ダブルタップフラグをリセット
+                clearTimeout(tapTimeout);
                 tapTimeout = setTimeout(() => {
                     captureImage();
                 }, 300); // 300ms以内に再度タップがない場合はシングルタップと判断
