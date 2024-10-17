@@ -5,20 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>カメラアプリ</title>
     <style>
-        video, canvas {
+        body, html {
+            margin: 0;
+            padding: 0;
             width: 100%;
-            height: auto;
+            height: 100%;
+            background-color: black;
         }
-        #downloadLink {
+        video, canvas {
             display: none;
         }
     </style>
 </head>
 <body>
-    <h1>カメラアプリ</h1>
     <video id="video" autoplay></video>
     <canvas id="canvas"></canvas>
-    <a id="downloadLink" download="captured_image.png">画像をダウンロード</a>
+    <a id="downloadLink" download="captured_image.png"></a>
 
     <script>
         let videoElement = document.getElementById('video');
@@ -44,6 +46,7 @@
                 
                 // ビデオ要素にストリームを設定
                 videoElement.srcObject = currentStream;
+                videoElement.style.display = "block"; // 映像を表示
             } catch (error) {
                 console.error('カメラの起動に失敗しました: ', error);
             }
@@ -73,7 +76,7 @@
         }
 
         // タップイベントの処理
-        videoElement.addEventListener('click', (event) => {
+        document.body.addEventListener('click', (event) => {
             const currentTime = new Date().getTime();
             const tapInterval = currentTime - lastTap;
 
