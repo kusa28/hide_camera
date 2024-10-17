@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>カメラアプリ</title>
+    <style>
+        video {
+            width: 100%;
+            max-width: 600px;
+            border: 1px solid black;
+        }
+        canvas {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>カメラアプリ</h1>
+    <video id="video" autoplay></video>
+    <button id="snap">スナップショットを撮る</button>
+    <canvas id="canvas"></canvas>
+    <img id="photo" alt="スナップショット">
+
+    <script>
+        // HTML要素の取得
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const context = canvas.getContext('2d');
+        const photo = document.getElementById('photo');
+        const snapButton = document.getElementById('snap');
+
+        // カメラストリームの取得
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then((stream) => {
+                video.srcObject = stream;
+            })
+            .catch((error) => {
+                console.error("カメラの取得に失敗しました:", error);
+            });
+
+        // スナップショットを撮る
+        snapButton.addEventListener('click', () => {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0);
+            const dataURL = canvas.toDataURL('image/png');
+            photo.src = dataURL;
+        });
+    </script>
+</body>
+</html>
